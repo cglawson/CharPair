@@ -77,6 +77,29 @@ public class Control {
 
         return output;
     }
+    
+    public String generateOutput3(int outputLength) { //Pure random, does not take into account occurences or calculated probability
+        String output = "";
+        char currSource = this.model.getRandomSourceDestination().getSource(); //Start with random
+        ArrayList<SourceDestination> destinationsPossibleForSource;
+        Random rand = new Random();
+
+        while (output.length() < outputLength) { //String building loop
+            output = output + currSource; //Add onto string
+            
+
+            destinationsPossibleForSource = this.model.listDestinationsOfSource(currSource);
+
+            while (destinationsPossibleForSource.isEmpty()) { //If list is empty choose random
+                currSource = this.model.getRandomSourceDestination().getSource();
+                destinationsPossibleForSource = this.model.listDestinationsOfSource(currSource);
+            }
+
+            currSource = destinationsPossibleForSource.get(rand.nextInt(destinationsPossibleForSource.size())).getDestination();
+        }
+
+        return output;
+    }
 
     public void getInputFromConsole() {
         input = console.nextLine();

@@ -17,7 +17,8 @@ public class CharPair {
         System.out.println("    1. Console input.");
         System.out.println("    2. Console output (Choose random, then roll for acceptance).");
         System.out.println("    3. Console output (Roll, choose based on probability wheel).");
-        System.out.println("    4. Exit.");
+        System.out.println("    4. Console output (Pure random choice from model).");
+        System.out.println("    5. Exit.");
     }
 
     public void getMenuChoice() {
@@ -44,8 +45,13 @@ public class CharPair {
                     System.out.println("Enter the character length of the output, then press ENTER.");
                     this.control.getInputFromConsole();
                     System.out.println(this.control.generateOutput2(Integer.parseInt(control.input)));
+                    break;                    
+                    case 4:
+                    System.out.println("Enter the character length of the output, then press ENTER.");
+                    this.control.getInputFromConsole();
+                    System.out.println(this.control.generateOutput3(Integer.parseInt(control.input)));
                     break;
-                case 4:
+                case 5:
                     System.out.println("EXITED.");
                     this.exit = true;
             }
