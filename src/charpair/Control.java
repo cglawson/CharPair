@@ -3,9 +3,17 @@ This class manipulates the Model and uses it to generate results.
  */
 package charpair;
 
+import java.io.BufferedWriter;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.Scanner;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Control {
 
@@ -51,7 +59,6 @@ public class Control {
 
         while (output.length() < outputLength) { //String building loop
             output = output + currSource; //Add onto string
-            
 
             destinationsPossibleForSource = this.model.listDestinationsOfSource(currSource);
 
@@ -77,7 +84,7 @@ public class Control {
 
         return output;
     }
-    
+
     public String generateOutput3(int outputLength) { //Pure random, does not take into account occurences or calculated probability
         String output = "";
         char currSource = this.model.getRandomSourceDestination().getSource(); //Start with random
@@ -86,7 +93,6 @@ public class Control {
 
         while (output.length() < outputLength) { //String building loop
             output = output + currSource; //Add onto string
-            
 
             destinationsPossibleForSource = this.model.listDestinationsOfSource(currSource);
 
@@ -105,6 +111,22 @@ public class Control {
         input = console.nextLine();
     }
 
+    public void loadDictionaryFile(String fileName) {
+        try {
+            Scanner fileScanner = new Scanner(Paths.get(fileName));
+
+            while (fileScanner.hasNextInt()) {
+                SourceDestination sourceDestination = new SourceDestination((char) fileScanner.nextInt(), (char) fileScanner.nextInt(), fileScanner.nextInt());
+
+                this.model.addSourceDestination(sourceDestination);
+            }
+            
+            this.model.calculateProbabilities();
+        } catch (IOException ex) {
+            Logger.getLogger(Control.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
     public void loadInputToModel() {
         for (int x = 0; x < input.length() - 1; x++) {
             char source = input.charAt(x);
@@ -114,5 +136,20 @@ public class Control {
         }
 
         this.model.calculateProbabilities();
+    }
+
+    public void outputDictionaryToFile(String fileName) {
+        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(
+                new FileOutputStream(fileName), "utf-8"))) {
+
+            for (int x = 0; x < this.model.getNumberOfSourceDestinations(); x++) {
+                writer.append(this.model.getSourceDestination(x).toString());
+                writer.newLine();
+            }
+
+            writer.close();
+        } catch (IOException ex) {
+            Logger.getLogger(Control.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 }
