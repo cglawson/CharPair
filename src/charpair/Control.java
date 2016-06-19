@@ -7,7 +7,6 @@ import java.io.BufferedWriter;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Random;
@@ -20,9 +19,45 @@ public class Control {
     Model model = new Model();
     Scanner console = new Scanner(System.in);
     String input = new String();
+    String output = new String();
+
+    public String cleanOutput() {
+
+        int count = 2;
+        do{
+        this.output = this.output.replaceAll("[^a-zA-Z\\.\\s\\,!?]", " "); //Remove any 'weird' punctuation
+        this.output = this.output.replaceAll("(\\s[a-z&&[^aeiou]]+[.,!?\\s])", " "); //Remove lone consonant words
+        this.output = this.output.replaceAll("(\\s[.,!?]\\s)", " "); //Remove lone punctuation  
+        this.output = this.output.replaceAll("\\s+", " "); //Remove double or more spaces
+        } while (count-- > 0);
+
+        //If there are 3 or more repeating characters
+        for (int index = 0; index < this.output.length() - 3; index++) {
+            if (this.output.charAt(index) == this.output.charAt(index + 1) && this.output.charAt(index + 1) == this.output.charAt(index + 2)) {
+                this.output = this.output.substring(0, index + 1) + this.output.substring(index + 2);
+
+                index--;
+            }
+        }
+
+        //Capitalize the beginning of a sentence
+        for (int index = 0; index < this.output.length() - 2; index++) {
+            if ((this.output.charAt(index) == '.' || this.output.charAt(index) == '!' || this.output.charAt(index) == '?') && this.output.charAt(index + 1) == ' ') {
+                this.output = this.output.substring(0, index + 1) + ' ' + Character.toUpperCase(this.output.charAt(index + 2)) + this.output.substring(index + 3);
+            }
+        }
+
+        this.output = Character.toUpperCase(this.output.charAt(0)) + this.output.substring(1);
+        
+        if(Character.isAlphabetic(this.output.charAt(this.output.length()-1))){
+            this.output = this.output + '.';
+        }
+        
+        return this.output;
+    }
 
     public String generateOutput(int outputLength) {
-        String output = "";
+        output = "";
         char currSource = this.model.getRandomSourceDestination().getSource(); //Start with a random
         ArrayList<SourceDestination> destinationsPossibleForSource;
         Random rand = new Random();
@@ -52,7 +87,7 @@ public class Control {
     }
 
     public String generateOutput2(int outputLength) {
-        String output = "";
+        output = "";
         char currSource = this.model.getRandomSourceDestination().getSource(); //Start with random
         ArrayList<SourceDestination> destinationsPossibleForSource;
         Random rand = new Random();
@@ -86,7 +121,7 @@ public class Control {
     }
 
     public String generateOutput3(int outputLength) { //Pure random, does not take into account occurences or calculated probability
-        String output = "";
+        output = "";
         char currSource = this.model.getRandomSourceDestination().getSource(); //Start with random
         ArrayList<SourceDestination> destinationsPossibleForSource;
         Random rand = new Random();
@@ -107,8 +142,18 @@ public class Control {
         return output;
     }
 
-    public void getInputFromConsole() {
-        input = console.nextLine();
+    public void getLineFromConsole() {
+        this.input = this.console.nextLine();
+    }
+
+    public int getIntFromConsole() {
+        int numChar = 0;
+        if (this.console.hasNextInt()) {
+            numChar = Math.abs(Integer.parseInt(this.console.nextLine()));
+        } else {
+            System.out.println("\n** Please enter a positive integer. **\n");
+        }
+        return numChar;
     }
 
     public void loadDictionaryFile(String fileName) {
@@ -120,10 +165,26 @@ public class Control {
 
                 this.model.addSourceDestination(sourceDestination);
             }
-            
+
             this.model.calculateProbabilities();
         } catch (IOException ex) {
-            Logger.getLogger(Control.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.print("\n** No such file. **\n");
+        }
+    }
+
+    public void loadInputFromFile(String fileName) {
+        input = "";
+
+        try {
+            Scanner fileScanner = new Scanner(Paths.get(fileName));
+
+            while (fileScanner.hasNextLine()) {
+                this.input = input + " " + fileScanner.nextLine();
+            }
+
+            this.model.calculateProbabilities();
+        } catch (IOException ex) {
+            System.out.print("\n** No such file. **\n");
         }
     }
 
@@ -136,6 +197,8 @@ public class Control {
         }
 
         this.model.calculateProbabilities();
+        this.model.sortSourceDestinations();
+        this.model.printSourceDestinations();
     }
 
     public void outputDictionaryToFile(String fileName) {
@@ -150,6 +213,22 @@ public class Control {
             writer.close();
         } catch (IOException ex) {
             Logger.getLogger(Control.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    public void writeOutputToFile(String fileName) {
+        if (!this.output.isEmpty()) {
+            try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(
+                    new FileOutputStream(fileName), "utf-8"))) {
+
+                writer.append(this.output);
+
+                writer.close();
+            } catch (IOException ex) {
+                Logger.getLogger(Control.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        } else {
+            System.out.print("\n* Please generate output first. *\n");
         }
     }
 }
